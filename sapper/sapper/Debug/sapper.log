@@ -1,3 +1,4 @@
 ﻿  sapper.cpp
-D:\Documents\source\repos\sapper\sapper\sapper.cpp(218,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-  sapper.vcxproj -> D:\Documents\source\repos\sapper\Debug\sapper.exe
+D:\Documents\GitHub\consoleGames\sapper\sapper\sapper.cpp(218,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+  LINK : не найден или не выполнена сборка D:\Documents\GitHub\consoleGames\sapper\Debug\sapper.exe при последней инкрементной компоновке; выполняется полная компоновка
+  sapper.vcxproj -> D:\Documents\GitHub\consoleGames\sapper\Debug\sapper.exe
