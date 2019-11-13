@@ -78,7 +78,7 @@ void clearBorder(int x, int y) {
 			cout << " ";
 		}
 	}
-	SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 + 2 });
+	SetConsoleCursorPosition(hConsole, { (short)n * 4 + 1,(short) n*2 });
 }
 
 void flag() {
@@ -96,7 +96,7 @@ void flag() {
 			SetConsoleTextAttribute(hConsole, 15); //Цвет текста - белый
 		}
 	}
-	SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 + 2 });
+	SetConsoleCursorPosition(hConsole, { (short)n * 4 + 1, (short)n * 2 });
 }
 
 void open(int x, int y) {
@@ -108,12 +108,13 @@ void open(int x, int y) {
 			SetConsoleTextAttribute(hConsole, 12); //Цвет текста - свтело-красный
 			cout << "*";
 			status = -1;
-			SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 + 2 });
-			cout << "Поражение :(";
+			SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 });
+			cout << "Поражение :(\n";
 		}
 		else {
 			if(bombs[x][y]!=0) cout << bombs[x][y];
 			clearBorder(x, y);
+			SetConsoleCursorPosition(hConsole, { (short)n * 4 + 1, (short)n * 2 });
 		}
 		if (bombs[x][y] == 0) {
 			for (int i = minimum(y); i <= maximum(y); i++) {
@@ -123,7 +124,6 @@ void open(int x, int y) {
 			}
 		}
 	}
-	SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 + 2 });
 }
 
 void generate() {
@@ -169,7 +169,8 @@ void drawCursor() {
 	position = { cursorPosition[0] * 4 + 2, cursorPosition[1] * 3 + 2 };
 	SetConsoleCursorPosition(hConsole, position);
 	cout << "_";
-	SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 + 2 });
+	SetConsoleCursorPosition(hConsole, { (short)n * 4+1, (short)n * 2 });
+
 }
 
 void drawField() {
@@ -266,22 +267,22 @@ int main()
 			if (GetAsyncKeyState(VK_LEFT) & 0x8000) {
 				cursorPosition[0] = (cursorPosition[0] + n - 1) % n;
 				drawCursor();
-				Sleep(100);
+				Sleep(120);
 			}
 			else if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
 				cursorPosition[0] = (cursorPosition[0] + 1) % n;
 				drawCursor();
-				Sleep(100);
+				Sleep(120);
 			}
 			else if (GetAsyncKeyState(VK_UP) & 0x8000) {
 				cursorPosition[1] = (cursorPosition[1] + n - 1) % n;
 				drawCursor();
-				Sleep(100);
+				Sleep(120);
 			}
 			else if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
 				cursorPosition[1] = (cursorPosition[1] + 1) % n;
 				drawCursor();
-				Sleep(100);
+				Sleep(120);
 			}
 			else if (GetAsyncKeyState(VK_SPACE) & 0x8000) {
 				if (gen == 0) {
@@ -289,11 +290,11 @@ int main()
 					generate();
 				}
 				open(cursorPosition[0], cursorPosition[1]);
-				Sleep(100);
+				Sleep(120);
 			}
 			else if ((GetAsyncKeyState(VK_NUMPAD5) & 0x8000) && (gen != 0)) {
 				flag();
-				Sleep(100);
+				Sleep(120);
 			}
 			if (checkWin()) {
 				SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 + 2 });
