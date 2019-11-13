@@ -4,14 +4,14 @@
 
 using namespace std;
 
-int n = 9;
-short cursorPositionOld[2] = { 0,0 };
-short cursorPosition[2] = { 0,0 };
-int bombs[9][9];
-bool opened[9][9];
-bool flagged[9][9];
-int status = 0;
-int n_bombs = 12;
+int n;
+short cursorPositionOld[2];
+short cursorPosition[2];
+int** bombs;
+bool** opened;
+bool** flagged;
+int status;
+int n_bombs;
 COORD position;
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -78,7 +78,7 @@ void clearBorder(int x, int y) {
 			cout << " ";
 		}
 	}
-	SetConsoleCursorPosition(hConsole, { 2, 34 });
+	SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 + 2 });
 }
 
 void flag() {
@@ -96,7 +96,7 @@ void flag() {
 			SetConsoleTextAttribute(hConsole, 15); //Цвет текста - белый
 		}
 	}
-	SetConsoleCursorPosition(hConsole, { 2, 34 });
+	SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 + 2 });
 }
 
 void open(int x, int y) {
@@ -108,7 +108,7 @@ void open(int x, int y) {
 			SetConsoleTextAttribute(hConsole, 12); //Цвет текста - свтело-красный
 			cout << "*";
 			status = -1;
-			SetConsoleCursorPosition(hConsole, { 2, 32 });
+			SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 + 2 });
 			cout << "Поражение :(";
 		}
 		else {
@@ -123,7 +123,7 @@ void open(int x, int y) {
 			}
 		}
 	}
-	SetConsoleCursorPosition(hConsole, { 2, 34 });
+	SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 + 2 });
 }
 
 void generate() {
@@ -137,12 +137,8 @@ void generate() {
 	for (int i = 0; i < n_bombs; i++) {
 		int x = rand() % n;
 		int y = rand() % n;
-		while ((x >= minimum(cursorPosition[0])) && (x <= maximum(cursorPosition[0])) && (y >= minimum(cursorPosition[1])) && (y <= maximum(cursorPosition[1]))) {
+		while (((x >= minimum(cursorPosition[0])) && (x <= maximum(cursorPosition[0])) && (y >= minimum(cursorPosition[1])) && (y <= maximum(cursorPosition[1])))||(bombs[x][y] == -1)){
 			x = (x + 4) % n;
-			y = (y - 4) % n;
-		}
-		while (bombs[x][y] == -1) {
-			x = (x - 6) % n;
 			y = (y + 3) % n;
 		}
 		bombs[x][y] = -1;
@@ -161,25 +157,19 @@ void generate() {
 }
 
 void drawCursor() {
-	position = { cursorPositionOld[0] * 4 + 3, cursorPositionOld[1] * 3 + 1 };
-	SetConsoleCursorPosition(hConsole, position);
-	cout << " ";
 	position = { cursorPositionOld[0] * 4 + 3, cursorPositionOld[1] * 3 + 2 };
 	SetConsoleCursorPosition(hConsole, position);
 	cout << " ";
 	position = { cursorPositionOld[0] * 4 + 2, cursorPositionOld[1] * 3 + 2 };
 	SetConsoleCursorPosition(hConsole, position);
 	cout << " ";
-	position = { cursorPosition[0] * 4 + 3, cursorPosition[1] * 3 + 1 };
-	SetConsoleCursorPosition(hConsole, position);
-	cout << "|";
 	position = { cursorPosition[0] * 4 + 3, cursorPosition[1] * 3 + 2 };
 	SetConsoleCursorPosition(hConsole, position);
 	cout << "|";
 	position = { cursorPosition[0] * 4 + 2, cursorPosition[1] * 3 + 2 };
 	SetConsoleCursorPosition(hConsole, position);
 	cout << "_";
-	SetConsoleCursorPosition(hConsole, { 2, 34 });
+	SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 + 2 });
 }
 
 void drawField() {
@@ -197,14 +187,15 @@ void drawField() {
 		}
 		cout << endl;
 	}
-	cout <<"Перемещение курсора <- ->; Поставить флаг \"NUMPAD5\"; Рискнуть \"SPACE\"";
+	cout << "Перемещение курсора <- ->; Поставить флаг \"NUMPAD5\"; Рискнуть \"SPACE\"";
+	cout << "\nКоличество бомб = " << n_bombs;
 }
 
 bool checkWin() {
 	bool result = true;
 	for (int i = 0; i < n; i++) {
 		for (int j = 0; j < n; j++) {
-			result = ((bombs[i][j] == -1) && (flagged[i][j]))||((bombs[i][j] != -1)&&(opened[i][j]));
+			result = (bombs[i][j] == -1)||((bombs[i][j] != -1)&&(opened[i][j]));
 			if (!result) break;
 		}
 		if (!result) break;
@@ -216,47 +207,112 @@ int main()
 {
 	setlocale(LC_CTYPE, "Russian");
 	srand(time(nullptr));
-	SetConsoleTextAttribute(hConsole, 15); //Цвет текста - белый
-	drawField();
-	drawCursor();
-	int gen = 0;
-	while (status == 0) {
-		cursorPositionOld[0] = cursorPosition[0];
-		cursorPositionOld[1] = cursorPosition[1]; 
-
-		if (GetAsyncKeyState(VK_SPACE)) {
-			if (gen == 0) {
-				gen++;
-				generate();
+	while (true) {
+		//system("cls"); //очистить консоль
+		SetConsoleTextAttribute(hConsole, 15); //Цвет текста - белый
+		status = 0;
+		for (int i = 0; i < 2; i++) {
+			cursorPositionOld[i] = 0;
+			cursorPosition[i] = 0;
+		}
+		cout << "Размер поля = n*n \nВведите n: ";
+		cin >> n;
+		bombs = new int* [n];
+		opened = new bool* [n];
+		flagged = new bool* [n];
+		for (int i = 0; i < n; i++) {
+			bombs[i] = new int[n];
+			opened[i] = new bool[n];
+			flagged[i] = new bool[n];
+			for (int j = 0; j < n; j++) {
+				bombs[i][j] = 0;
+				opened[i][j] = false;
+				flagged[i][j] = false;
 			}
-			open(cursorPosition[0], cursorPosition[1]);
 		}
-		else if (GetAsyncKeyState(VK_LEFT)) {
-			cursorPosition[0] = (cursorPosition[0] + n-1) % n;
-			drawCursor();
+
+
+		int endIn = 0;
+		while (endIn == 0) {
+			cout << "Выберите сложность:\n1-легкий уровень\n2-средний уровень\n3-сложный уровень\n";
+			cin >> endIn;
+			if ((endIn < 1) || (endIn > 3)) {
+				cout << "Неверный ввод\n";
+				endIn = 0;
+			}
+			switch (endIn) {
+			case 1:
+				n_bombs = n * n / 10;
+				break;
+			case 2:
+				n_bombs = n * n / 8;
+				break;
+			case 3:
+				n_bombs = n * n / 5;
+				break;
+			}
 		}
-		else if (GetAsyncKeyState(VK_RIGHT)) {
-			cursorPosition[0] = (cursorPosition[0] + 1) % n;
-			drawCursor();
+		int gen = 0;
+
+		
+
+		system("cls"); //очистить консоль
+		drawField();
+		drawCursor();
+		while (status == 0) {
+			cursorPositionOld[0] = cursorPosition[0];
+			cursorPositionOld[1] = cursorPosition[1];
+
+			if (GetAsyncKeyState(VK_LEFT) & 0x8000) {
+				cursorPosition[0] = (cursorPosition[0] + n - 1) % n;
+				drawCursor();
+				Sleep(100);
+			}
+			else if (GetAsyncKeyState(VK_RIGHT) & 0x8000) {
+				cursorPosition[0] = (cursorPosition[0] + 1) % n;
+				drawCursor();
+				Sleep(100);
+			}
+			else if (GetAsyncKeyState(VK_UP) & 0x8000) {
+				cursorPosition[1] = (cursorPosition[1] + n - 1) % n;
+				drawCursor();
+				Sleep(100);
+			}
+			else if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
+				cursorPosition[1] = (cursorPosition[1] + 1) % n;
+				drawCursor();
+				Sleep(100);
+			}
+			else if (GetAsyncKeyState(VK_SPACE) & 0x8000) {
+				if (gen == 0) {
+					gen++;
+					generate();
+				}
+				open(cursorPosition[0], cursorPosition[1]);
+				Sleep(100);
+			}
+			else if ((GetAsyncKeyState(VK_NUMPAD5) & 0x8000) && (gen != 0)) {
+				flag();
+				Sleep(100);
+			}
+			if (checkWin()) {
+				SetConsoleCursorPosition(hConsole, { 2, (short)n * 4 + 2 });
+				SetConsoleTextAttribute(hConsole, 10); //Цвет текста - светло-зеленый
+				status = 1;
+				cout << "Победа!!! :)" << endl;
+			}
 		}
-		else if (GetAsyncKeyState(VK_UP)) {
-			cursorPosition[1] = (cursorPosition[1] + n-1) % n;
-			drawCursor();
+		for (int i = 0; i < n; i++) {
+			delete[] bombs[i];
+			delete[] opened[i];
+			delete[] flagged[i];
 		}
-		else if (GetAsyncKeyState(VK_DOWN)) {
-			cursorPosition[1] = (cursorPosition[1] + 1) % n;
-			drawCursor();
-		}
-		else if ((GetAsyncKeyState(VK_NUMPAD5))&&(gen!=0)){
-			flag();
-		}
-		Sleep(110);
-		if (checkWin()) {
-			SetConsoleTextAttribute(hConsole, 10); //Цвет текста - светло-зеленый
-			status = 1;
-			cout << "Победа!!! :)" << endl;
-		}
+		delete[] bombs;
+		delete[] opened;
+		delete[] flagged;
+
+
+		system("pause");
 	}
-	system("pause");
 }
 
